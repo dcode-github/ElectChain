@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { Button, Input, Typography, Form } from 'antd';
 import 'antd/dist/reset.css';
-
+import { useNavigate } from 'react-router-dom';
 const { Title } = Typography;
 
 const LoginRegisterForm = () => {
   const [activeTab, setActiveTab] = useState('login');
+  const navigate = useNavigate();
 
+  const handleRedirect = () => {
+    navigate('/Dashboard');
+  };
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'rgb(240, 244, 249)' }}>
       <div className="flex items-center justify-center min-h-screen">
@@ -78,7 +82,7 @@ const LoginRegisterForm = () => {
                 </Form.Item>
 
                 <div className="flex justify-center mt-4">
-                  <Button type="primary" shape="round" size="large" htmlType="submit" className="bg-blue-600 text-white rounded-md font-semibold">
+                  <Button type="primary" shape="round" size="large" htmlType="submit" className="bg-blue-600 text-white rounded-md font-semibold" >
                     Submit
                   </Button>
                 </div>
@@ -100,7 +104,7 @@ const LoginRegisterForm = () => {
                   <Input.Password placeholder="Password" className="border-gray-600 rounded-md text-gray-700 bg-gray-200" />
                 </Form.Item>
                 <div className="flex justify-center mt-4">
-                  <Button type="primary" shape="round" size="large" htmlType="submit" className="bg-blue-600 text-white rounded-md font-semibold">
+                  <Button type="primary" shape="round" size="large" htmlType="submit" className="bg-blue-600 text-white rounded-md font-semibold" onClick={handleRedirect}>
                     Submit
                   </Button>
                 </div>
