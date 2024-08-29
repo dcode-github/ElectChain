@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/dcode-github/ElectChain/backend/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -33,6 +34,7 @@ type Guest struct {
 
 type LoginResponse struct {
 	Message string `json:"message"`
+	Token   string `json:"token"`
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -103,14 +105,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if loginRequest.Password != "abc" {
+	if loginRequest.Password != user["password"].(string) {
 		http.Error(w, "Wrong Password", http.StatusUnauthorized)
 		return
 	}
 
-	response := LoginResponse{Message: "Login Successful"}
+	token, err := utils.GenerateJWT(loginRequest.Address)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	response := LoginResponse{Message: "Login Successful", Token: token}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
-
 }
