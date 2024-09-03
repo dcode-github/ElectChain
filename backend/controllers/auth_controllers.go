@@ -28,7 +28,7 @@ type User struct {
 type Guest struct {
 	Address  string `json:"address"`
 	Name     string `json:"name"`
-	Age      int    `json:"age"`
+	Age      string `json:"age"`
 	Gender   string `json:"gender"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -38,11 +38,13 @@ type LoginResponse struct {
 	Message string `json:"message"`
 	Token   string `json:"token"`
 	Address string `json:"address"`
+	Role    string `json:"role"`
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	var guestRequest Guest
 	err := json.NewDecoder(r.Body).Decode(&guestRequest)
+	fmt.Println(err)
 	if err != nil {
 		http.Error(w, "Error parsing the request body", http.StatusBadRequest)
 		return
@@ -123,6 +125,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Message: "Login Successful",
 		Token:   token,
 		Address: loginRequest.Address,
+		Role:    user["role"].(string),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

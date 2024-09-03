@@ -8,6 +8,7 @@ import (
 	"github.com/dcode-github/ElectChain/backend/config"
 	"github.com/dcode-github/ElectChain/backend/routes"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -17,5 +18,14 @@ func main() {
 	router := mux.NewRouter()
 	routes.Routes(router, client)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	})
+
+	handler := c.Handler(router)
+
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
