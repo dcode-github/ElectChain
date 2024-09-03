@@ -7,7 +7,7 @@ import { Carousel } from 'antd';
 
 const { Title, Text } = Typography;
 
-const Dashboard = () => {
+const UserDashboard = () => {
   const [notifications, setNotifications] = useState([
     { id: 1, message: 'Presidential Election 2024 is approaching!', date: '2024-11-01' },
     { id: 2, message: 'Local Council Election is currently ongoing.', date: '2024-08-20' }
@@ -269,4 +269,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default UserDashboard;

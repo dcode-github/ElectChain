@@ -1,16 +1,66 @@
 import React, { useState } from 'react';
-import { Button, Input, Typography, Form } from 'antd';
+import { Button, Input, Typography, Form, message } from 'antd';
 import 'antd/dist/reset.css';
 import { useNavigate } from 'react-router-dom';
+
 const { Title } = Typography;
 
 const LoginRegisterForm = () => {
   const [activeTab, setActiveTab] = useState('login');
   const navigate = useNavigate();
 
-  const handleRedirect = () => {
-    navigate('/Dashboard');
+  const handleLogin = async (values) => {
+    console.log('Login values received:', values);
+    try {
+      const response = await fetch('http://localhost:8080/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+  
+      console.log('Login response:', response);
+  
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+      const { role } = await response.json();
+  
+      console.log('Role received:', role);
+  
+      if (role === 'user') {
+        navigate('/user-dashboard');
+      } else if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        message.error('Unknown role');
+      }
+    } catch (error) {
+      message.error(`Error: ${error.message}`);
+    }
   };
+  
+  const handleRegister = async (values) => {
+    console.log('Register values received:', values);
+    try {
+      const response = await fetch('http://localhost:8080/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+  
+      console.log('Register response:', response);
+  
+      if (!response.ok) {
+        throw new Error('Registration failed');
+      }
+      message.success('Registration successful');
+      setActiveTab('login');
+    } catch (error) {
+      message.error(`Error: ${error.message}`);
+    }
+  };
+  
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'rgb(240, 244, 249)' }}>
       <div className="flex items-center justify-center min-h-screen">
@@ -32,7 +82,10 @@ const LoginRegisterForm = () => {
             </Button>
           </div>
 
-          <Form layout="vertical">
+          <Form
+            layout="vertical"
+            onFinish={activeTab === 'login' ? handleLogin : handleRegister}
+          >
             {activeTab === 'register' ? (
               <>
                 <div className="flex gap-4">
@@ -82,7 +135,7 @@ const LoginRegisterForm = () => {
                 </Form.Item>
 
                 <div className="flex justify-center mt-4">
-                  <Button type="primary" shape="round" size="large" htmlType="submit" className="bg-blue-600 text-white rounded-md font-semibold" >
+                  <Button type="primary" shape="round" size="large" htmlType="submit" className="bg-blue-600 text-white rounded-md font-semibold">
                     Submit
                   </Button>
                 </div>
@@ -91,7 +144,7 @@ const LoginRegisterForm = () => {
               <>
                 <Form.Item
                   label={<span className="text-gray-700 font-semibold">Ethereum Address</span>}
-                  name="ethereumAddress"
+                  name="address"
                   rules={[{ required: true, message: 'Please enter your Ethereum address!' }]}
                 >
                   <Input placeholder="Ethereum Address" className="border-gray-600 rounded-md text-gray-700 bg-gray-200" />
@@ -104,7 +157,7 @@ const LoginRegisterForm = () => {
                   <Input.Password placeholder="Password" className="border-gray-600 rounded-md text-gray-700 bg-gray-200" />
                 </Form.Item>
                 <div className="flex justify-center mt-4">
-                  <Button type="primary" shape="round" size="large" htmlType="submit" className="bg-blue-600 text-white rounded-md font-semibold" onClick={handleRedirect}>
+                  <Button type="primary" shape="round" size="large" htmlType="submit" className="bg-blue-600 text-white rounded-md font-semibold">
                     Submit
                   </Button>
                 </div>
