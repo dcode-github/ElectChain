@@ -20,7 +20,9 @@ func InitCollections(client *mongo.Client) {
 
 type User struct {
 	Address  string `json:"address"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
+	Role     string `json:"role"`
 }
 
 type Guest struct {
@@ -35,6 +37,7 @@ type Guest struct {
 type LoginResponse struct {
 	Message string `json:"message"`
 	Token   string `json:"token"`
+	Address string `json:"address"`
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +119,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := LoginResponse{Message: "Login Successful", Token: token}
+	response := LoginResponse{
+		Message: "Login Successful",
+		Token:   token,
+		Address: loginRequest.Address,
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

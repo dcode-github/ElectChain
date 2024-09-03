@@ -15,7 +15,7 @@ func main() {
 	defer client.Disconnect(context.TODO())
 
 	router := mux.NewRouter()
-	routes.AuthRoutes(router, client)
+	routes.Routes(router, client)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
