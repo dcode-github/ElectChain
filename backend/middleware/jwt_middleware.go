@@ -2,12 +2,16 @@ package middleware
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
 	"github.com/dcode-github/ElectChain/backend/utils"
 )
+
+type contextKey string
+
+const addressKey = contextKey("address")
 
 func JWTAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -18,21 +22,28 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		parts := strings.Split(authHeader, " ")
-		fmt.Println(parts)
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
 			return
 		}
-		token := parts[1]
 
+		token := parts[1]
 		claims, err := utils.ValidateJWT(token)
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			log.Println("Token validation error:", err)
+			http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
 			return
 		}
 
-		x := r.WithContext(context.WithValue(r.Context(), "address", claims.Address))
-
-		next.ServeHTTP(w, x)
+		ctx := context.WithValue(r.Context(), addressKey, claims.Address)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func FromContext(ctx context.Context) string {
+	address, ok := ctx.Value(addressKey).(string)
+	if !ok {
+		return ""
+	}
+	return address
 }

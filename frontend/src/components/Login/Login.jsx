@@ -10,7 +10,6 @@ const LoginRegisterForm = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (values) => {
-    console.log('Login values received:', values);
     try {
       const response = await fetch('http://localhost:8080/login', {
         method: 'POST',
@@ -18,14 +17,15 @@ const LoginRegisterForm = () => {
         body: JSON.stringify(values),
       });
   
-      console.log('Login response:', response);
+      const data = await response.json();
   
       if (!response.ok) {
-        throw new Error('Login failed');
+        throw new Error(data.message || 'Login failed');
       }
-      const { role } = await response.json();
   
-      console.log('Role received:', role);
+      const { token, role } = data;
+  
+      sessionStorage.setItem('token', token);
   
       if (role === 'user') {
         navigate('/user-dashboard');
