@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/dcode-github/ElectChain/backend/models"
 	"github.com/dcode-github/ElectChain/backend/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,15 +26,6 @@ type User struct {
 	Role     string `json:"role"`
 }
 
-type Guest struct {
-	Address  string `json:"address"`
-	Name     string `json:"name"`
-	Age      string `json:"age"`
-	Gender   string `json:"gender"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 type LoginResponse struct {
 	Message string `json:"message"`
 	Token   string `json:"token"`
@@ -42,16 +34,13 @@ type LoginResponse struct {
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	var guestRequest Guest
+	var guestRequest models.UserDetails
 	err := json.NewDecoder(r.Body).Decode(&guestRequest)
-	fmt.Println(err)
 	if err != nil {
 		http.Error(w, "Error parsing the request body", http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
-
-	fmt.Printf("Guest request: %+v\n", guestRequest)
 
 	var existingUser bson.M
 	err = userCollection.FindOne(r.Context(), bson.M{"address": guestRequest.Address}).Decode(&existingUser)
@@ -74,6 +63,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error accessing database", http.StatusInternalServerError)
 		return
 	}
+
+	guestRequest.Password = guestRequest.Name
 
 	_, err = guestCollection.InsertOne(r.Context(), guestRequest)
 	if err != nil {

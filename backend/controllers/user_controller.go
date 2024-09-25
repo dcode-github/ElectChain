@@ -8,17 +8,10 @@ import (
 	"net/http"
 
 	"github.com/dcode-github/ElectChain/backend/middleware"
+	"github.com/dcode-github/ElectChain/backend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-type UserDetails struct {
-	Address string `json:"address"`
-	Name    string `json:"name"`
-	Age     string `json:"age"`
-	Gender  string `json:"gender"`
-	Email   string `json:"email"`
-}
 
 func UserDashboard(w http.ResponseWriter, r *http.Request) {
 	address := middleware.FromContext(r.Context())
@@ -47,7 +40,7 @@ func UserDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func fetchUserData(ctx context.Context, address string) (*UserDetails, error) {
+func fetchUserData(ctx context.Context, address string) (*models.UserDetails, error) {
 	var user bson.M
 	err := userCollection.FindOne(ctx, bson.M{"address": address}).Decode(&user)
 	if err != nil {
@@ -56,7 +49,7 @@ func fetchUserData(ctx context.Context, address string) (*UserDetails, error) {
 		}
 		return nil, err
 	}
-	userDetails := &UserDetails{
+	userDetails := &models.UserDetails{
 		Address: user["address"].(string),
 		Name:    user["name"].(string),
 		Age:     user["age"].(string),
