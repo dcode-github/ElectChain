@@ -1,4 +1,40 @@
 {
   "_format": "hh-sol-cache-2",
-  "files": {}
+  "files": {
+    "/home/danish/ElectChain/contract/contracts/Election.sol": {
+      "lastModificationDate": 1730834171463,
+      "contentHash": "a1980a2490254e0fa48fa82ef5e4794a",
+      "sourceName": "contracts/Election.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.4.22 <0.9.0"
+      ],
+      "artifacts": [
+        "Elections"
+      ]
+    }
+  }
 }

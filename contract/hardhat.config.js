@@ -1,12 +1,12 @@
 /** @type import('hardhat/config').HardhatUserConfig */
 require("dotenv").config();
+require("@nomiclabs/hardhat-ethers");
 module.exports = {
-  solidity: "0.8.28",
+  solidity: "0.8.0",
   networks: {
-    mainnet: {
-      // url:"https://mainnet.infura.io/v3/ff1caad846e94e90872bd7042ce85f37",
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
-      accounts: [process.env.PRIVATE_KEY]
-    }
-  }
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 31337,
+    },
+  },
 };

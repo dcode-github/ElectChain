@@ -1,25 +1,26 @@
-// Import ethers from hardhat
+// scripts/deploy.js
 const { ethers } = require("hardhat");
 
 async function main() {
     // Get the deployer's address (first signer)
     const [deployer] = await ethers.getSigners();
-    console.log("Deploying contract with the account:", deployer.address);
+    console.log("Deploying contracts with the account:", deployer.address);
 
     // Get the contract factory for the contract you want to deploy
-    const MyContract = await ethers.getContractFactory("Elections");
+    const Elections = await ethers.getContractFactory("Elections");
 
-    // Deploy the contract with constructor parameters
-    const myContract = await MyContract.deploy("Hello, World!");
+    // Deploy the contract with constructor arguments
+    const elections = await Elections.deploy();
+    
+    // Wait for the contract to be deployed
+    await elections.deployed();
 
-    // Log the contract's deployed address
-    console.log("Contract deployed to address:", myContract.address);
+    console.log("Contract deployed to:", elections.address);
 }
 
-// Run the deployment script
 main()
-.then(() => process.exit(0))
-.catch((error) => {
-    console.error(error);
-    process.exit(1);
-});
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
