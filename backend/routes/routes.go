@@ -15,5 +15,5 @@ func Routes(router *mux.Router, client *mongo.Client) {
 	protectedRouter.Use(middleware.JWTAuthMiddleware)
 	protectedRouter.HandleFunc("/user-dashboard", controllers.UserDashboard).Methods("GET")
 	protectedRouter.HandleFunc("/admin-dashboard", controllers.AdminDashboard).Methods("GET")
-	protectedRouter.HandleFunc("/create-election", controllers.CreateElection).Methods("POST")
+	protectedRouter.HandleFunc("/election", controllers.CreateElection).Methods("POST")
 }

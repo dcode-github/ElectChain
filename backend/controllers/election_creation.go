@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/big"
 	"net/http"
@@ -17,60 +18,59 @@ import (
 )
 
 const (
-	contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3" // Replace with the contract address from Hardhat
-	infuraURL       = "http://127.0.0.1:8545"                      // URL for Hardhat's local network
+	contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+	infuraURL       = "http://127.0.0.1:8545"
 )
 
-// ElectionRequest structure for the incoming JSON body
 type ElectionRequest struct {
-	Name        string `json:"name"`
+	Name        string `json:"title"`
 	Description string `json:"description"`
-	StartTime   uint   `json:"startTime"`
-	EndTime     uint   `json:"endTime"`
+	StartTime   uint64 `json:"startDate"`
+	EndTime     uint64 `json:"endDate"`
+	ClientAdd   string `json:"clientAdd"`
 }
 
 var client *ethclient.Client
 
-// ABI for the Elections contract (simplified version, adjust it as per your contract ABI)
 var votingSystemABI = `[{
     "constant": false,
     "inputs": [
         {
+            "internalType": "string",
             "name": "name",
             "type": "string"
         },
         {
+            "internalType": "string",
             "name": "description",
             "type": "string"
         },
         {
+            "internalType": "uint256",
             "name": "startTime",
             "type": "uint256"
         },
         {
+            "internalType": "uint256",
             "name": "endTime",
             "type": "uint256"
         }
     ],
     "name": "createElection",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
+	"outputs": [],
+	"stateMutability": "nonpayable",
+	"type": "function"
 }]`
 
-// Initialize Ethereum client
 func init() {
 	var err error
 	client, err = ethclient.Dial(infuraURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to the Ethereum client:", err)
 	}
 }
 
-// CreateElection handles the HTTP request to create a new election
 func CreateElection(w http.ResponseWriter, r *http.Request) {
-	// Parse the incoming JSON body
 	var electionReq ElectionRequest
 	err := json.NewDecoder(r.Body).Decode(&electionReq)
 	if err != nil {
@@ -78,65 +78,77 @@ func CreateElection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Connect to the contract
+	fmt.Printf("Received Election Data: %+v\n", electionReq)
+
+	startTime := new(big.Int).SetUint64(electionReq.StartTime)
+	endTime := new(big.Int).SetUint64(electionReq.EndTime)
+
 	address := common.HexToAddress(contractAddress)
 	parsedABI, err := abi.JSON(strings.NewReader(votingSystemABI))
 	if err != nil {
+		fmt.Println("Failed to parse ABI:", err)
 		http.Error(w, "Failed to parse ABI", http.StatusInternalServerError)
 		return
 	}
 
-	// Prepare the transaction data for calling `createElection`
-	data, err := parsedABI.Pack("createElection", electionReq.Name, electionReq.Description, electionReq.StartTime, electionReq.EndTime)
+	fmt.Println("Packing data for createElection:")
+	fmt.Printf("Name: %s, Description: %s, StartTime: %d, EndTime: %d\n",
+		electionReq.Name, electionReq.Description, electionReq.StartTime, electionReq.EndTime)
+
+	data, err := parsedABI.Pack("createElection", electionReq.Name, electionReq.Description, startTime, endTime)
 	if err != nil {
-		http.Error(w, "Failed to pack transaction data", http.StatusInternalServerError)
+		fmt.Println("Failed to pack transaction data:", err)
+		http.Error(w, fmt.Sprintf("Failed to pack transaction data: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	// Use the private key to sign the transaction (do NOT hardcode private keys in real applications!)
 	privateKeyHex := os.Getenv("PRIVATE_KEY")
 	privateKey, err := crypto.HexToECDSA(privateKeyHex)
 	if err != nil {
+		fmt.Println("Failed to convert private key", err)
 		http.Error(w, "Failed to convert private key", http.StatusInternalServerError)
 		return
 	}
 
-	// Prepare the account to send the transaction
 	fromAddress := crypto.PubkeyToAddress(privateKey.PublicKey)
 
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
+		fmt.Println("Failed to get nonce", err)
 		http.Error(w, "Failed to get nonce", http.StatusInternalServerError)
 		return
 	}
 
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
+		fmt.Println("Failed to get gas price", err)
 		http.Error(w, "Failed to get gas price", http.StatusInternalServerError)
 		return
 	}
 
-	gasLimit := uint64(300000) // Set the gas limit for the transaction
+	gasLimit := uint64(300000)
 
-	// Create the transaction
 	tx := types.NewTransaction(nonce, address, big.NewInt(0), gasLimit, gasPrice, data)
 
-	// Sign the transaction
-	chainID := big.NewInt(1337) // Hardhat's default chain ID is 1337, change if necessary
+	chainID := big.NewInt(1337)
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
 	if err != nil {
+		fmt.Println("Failed to sign transaction", err)
 		http.Error(w, "Failed to sign transaction", http.StatusInternalServerError)
 		return
 	}
 
-	// Send the transaction
+	fmt.Println(signedTx)
+
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
-		http.Error(w, "Failed to send transaction", http.StatusInternalServerError)
+		fmt.Println("Failed to send transaction", err)
+		http.Error(w, fmt.Sprintf("Failed to send transaction: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	// Send a success response
+	log.Printf("Transaction Hash: %s", signedTx.Hash().Hex())
+
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Election created successfully"))
 }
